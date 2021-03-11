@@ -17,6 +17,7 @@ struct command_t {
 	char *name;
 	bool background;
 	bool auto_complete;
+	bool repeat;
 	int arg_count;
 	char **args;
 	char *redirects[3]; // in/out redirection
@@ -32,6 +33,7 @@ void print_command(struct command_t * command)
 	printf("Command: <%s>\n", command->name);
 	printf("\tIs Background: %s\n", command->background?"yes":"no");
 	printf("\tNeeds Auto-complete: %s\n", command->auto_complete?"yes":"no");
+	printf("\tRepeating History: %s\n", command->repeat?"yes":"no");
 	printf("\tRedirects:\n");
 	for (i=0;i<3;i++)
 		printf("\t\t%d: %s\n", i, command->redirects[i]?command->redirects[i]:"N/A");
@@ -106,6 +108,8 @@ int parse_command(char *buf, struct command_t *command)
 		command->auto_complete=true;
 	if (len>0 && buf[len-1]=='&') // background
 		command->background=true;
+	if (len>0 && buf[len-1]=='!' && buf[len-2]=='!') // history
+		command->repeat=true;
 
 	char *pch = strtok(buf, splitters);
 	command->name=(char *)malloc(strlen(pch)+1);
@@ -136,6 +140,8 @@ int parse_command(char *buf, struct command_t *command)
 		}
 		while (len>0 && strchr(splitters, arg[len-1])!=NULL) arg[--len]=0; // trim right whitespace
 		if (len==0) continue; // empty arg, go for next
+
+		// 
 
 		// piping to another command
 		if (strcmp(arg, "|")==0)
@@ -367,15 +373,26 @@ int process_command(struct command_t *command)
 		execvp(command->name, command->args); // exec+args+path
 		exit(0);
 		/// TODO: do your own exec with path resolving using execv()
+		/// https://www.man7.org/linux/man-pages/man3/exec.3.html
+		/// execv
 	}
 	else
 	{
+		//Already Implemented
 		if (!command->background)
 			wait(0); // wait for child process to finish
 		return SUCCESS;
 	}
 
 	// TODO: your implementation here
+	// ADD HISTORY STRING ARRAY (functioning as a queue)
+	// ADD EVERY EXECUTION TO THE TOP OF HISTORY ARRAY
+	// Implement !!
+		// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
+		// Else if command->repeat flag is set, print the command from the top of the history.
+		// Replace all !!'s in the command with the string from the top of the history array.
+
+	//NOTE: DEBUG diyen satırları kullanmayı UNUTMAYIN!
 
 	printf("-%s: %s: command not found\n", sysname, command->name);
 	return UNKNOWN;
