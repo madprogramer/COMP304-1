@@ -308,16 +308,20 @@ int prompt(struct command_t *command, history *h)
   		index--;
   	buf[index++]=0; // null terminate string
 
-  	//TODO: Copy into top of history instead of only oldbuf
-  	strcpy(oldbuf, buf);
 
-  	//TODO: Push top of history back
-  	//for()
-  	//strcpy(history[i], history[i+1]);
-  	
-  	// TODO: Update history?
-	//histsize++;
-	h->length+=1;
+  	//TODO: MOVE THIS OUTSIDE
+  	//Push stack!
+  	int ih = 0;
+  	for(;ih<HISTORYSIZE;ih++){
+  		strcpy(h->commands[ih+1], h->commands[ih]);
+  	}
+
+  	//FIXME: Consider unifying oldbuf and history?
+  	strcpy(oldbuf, buf);
+  	strcpy(h->commands[0], buf);
+
+  	//Update length
+	h->length = ( (h->length) < HISTORYSIZE ) ? h->length+1 : HISTORYSIZE;
 
   	parse_command(buf, command);
 
@@ -374,6 +378,17 @@ int process_command(struct command_t *command, history *h)
 				printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
 			return SUCCESS;
 		}
+	}
+
+	if (strcmp(command->name, "history")==0)
+	{
+		//TODO: Print History
+		printf("Time to make history!\n");
+		int ih = 0;
+	  	for(;ih < h->length;ih++){
+	  		printf("%s\n", h->commands[ih]);
+	  	}
+		return SUCCESS;
 	}
 
 	pid_t pid=fork();
