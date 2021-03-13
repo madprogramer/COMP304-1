@@ -8,6 +8,9 @@
 #include <errno.h>
 const char * sysname = "seashell";
 
+#define HISTORYSIZE 5
+#define BUFFERSIZE 4096
+
 enum return_codes {
 	SUCCESS = 0,
 	EXIT = 1,
@@ -209,7 +212,7 @@ void prompt_backspace()
  * @param  buf_size [description]
  * @return          [description]
  */
-int prompt(struct command_t *command)
+int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
 {
 	int index=0;
 	char c;
@@ -219,7 +222,7 @@ int prompt(struct command_t *command)
 	//PROBLEM HERE
 	int histsize = 0;
 
-	static char history[5][4096];
+	//static char history[5][4096];
 
     // tcgetattr gets the parameters of the current terminal
     // STDIN_FILENO will tell tcgetattr that it should write the settings
@@ -314,11 +317,12 @@ int prompt(struct command_t *command)
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
   	return SUCCESS;
 }
-int process_command(struct command_t *command);
+int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE]);
 int main()
 {
 	//TODO: Wait for response from BB
-	//static char history[5][4096];
+	
+	static char history[HISTORYSIZE][BUFFERSIZE];
 
 	while (1)
 	{
@@ -326,12 +330,12 @@ int main()
 		memset(command, 0, sizeof(struct command_t)); // set all bytes to 0
 
 		int code;
-		code = prompt(command);
-		//code = prompt(command,history);
+		//code = prompt(command);
+		code = prompt(command,history);
 		if (code==EXIT) break;
 
-		code = process_command(command);
-		//code = process_command(command,history);
+		//code = process_command(command);
+		code = process_command(command,history);
 		if (code==EXIT) break;
 
 		free_command(command);
@@ -341,7 +345,7 @@ int main()
 	return 0;
 }
 
-int process_command(struct command_t *command)
+int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
 {
 	//TODO: Remove histsize
 	static int histsize = 0;
@@ -420,7 +424,7 @@ int process_command(struct command_t *command)
 	{
 		// TODO: Update history?
 		histsize++;
-		
+
 		//Already Implemented
 		if (!command->background)
 			wait(0); // wait for child process to finish
