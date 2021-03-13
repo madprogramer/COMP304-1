@@ -216,6 +216,11 @@ int prompt(struct command_t *command)
 	char buf[4096];
 	static char oldbuf[4096];
 
+	//PROBLEM HERE
+	int histsize = 0;
+
+	static char history[5][4096];
+
     // tcgetattr gets the parameters of the current terminal
     // STDIN_FILENO will tell tcgetattr that it should write the settings
     // of stdin to oldt
@@ -237,7 +242,7 @@ int prompt(struct command_t *command)
   	while (1)
   	{
 		c=getchar();
-		// printf("Keycode: %u\n", c); // DEBUG: uncomment for debugging
+		//printf("Keycode: %u\n", c); // DEBUG: uncomment for debugging
 
 		if (c==9) // handle tab
 		{
@@ -254,17 +259,17 @@ int prompt(struct command_t *command)
 			}
 			continue;
 		}
-		if (c==27 && multicode_state==0) // handle multi-code keys
+		if (c==27 && multicode_state==0) // (UP) handle multi-code keys
 		{
 			multicode_state=1;
 			continue;
 		}
-		if (c==91 && multicode_state==1)
+		if (c==91 && multicode_state==1) // ( ) )  ?
 		{
 			multicode_state=2;
 			continue;
 		}
-		if (c==65 && multicode_state==2) // up arrow
+		if (c==65 && multicode_state==2) // unechoed A
 		{
 			int i;
 			while (index>0)
@@ -295,11 +300,15 @@ int prompt(struct command_t *command)
   		index--;
   	buf[index++]=0; // null terminate string
 
+  	//TODO: Copy into top of history instead of oldbuf
   	strcpy(oldbuf, buf);
+  	//TODO: Push top of history back
+  	//for()
+  	//strcpy(history[i], history[i+1]);
 
   	parse_command(buf, command);
 
-  	// print_command(command); // DEBUG: uncomment for debugging
+  	//print_command(command); // DEBUG: uncomment for debugging
 
     // restore the old settings
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
@@ -308,6 +317,9 @@ int prompt(struct command_t *command)
 int process_command(struct command_t *command);
 int main()
 {
+	//TODO: Wait for response from BB
+	//static char history[5][4096];
+
 	while (1)
 	{
 		struct command_t *command=malloc(sizeof(struct command_t));
@@ -315,9 +327,11 @@ int main()
 
 		int code;
 		code = prompt(command);
+		//code = prompt(command,history);
 		if (code==EXIT) break;
 
 		code = process_command(command);
+		//code = process_command(command,history);
 		if (code==EXIT) break;
 
 		free_command(command);
@@ -329,6 +343,8 @@ int main()
 
 int process_command(struct command_t *command)
 {
+	//TODO: Remove histsize
+	static int histsize = 0;
 	int r;
 	if (strcmp(command->name, "")==0) return SUCCESS;
 
@@ -349,6 +365,30 @@ int process_command(struct command_t *command)
 	pid_t pid=fork();
 	if (pid==0) // child
 	{
+
+		// TODO: History Repeats
+		if(command->repeat){
+
+			// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
+			if (histsize == 0){
+				printf("No commands in history.\n");
+				exit(0);
+			}
+			
+			// Else print the command from the top of the history.
+			else{
+				//TODO: Replace with history instead of oldbuff
+				//char lastbuff[4096];
+				//strcpy(oldbuff, lastbuff);
+				//printf("%s\n",lastbuff);
+				printf("There is a command in history but it's hidden from me :{\n");
+			}
+
+			// TODO:
+			// Replace all !!'s in the command with the string from the top of the history array.
+
+		}
+
 		/// This shows how to do exec with environ (but is not available on MacOs)
 	    // extern char** environ; // environment variables
 		// execvpe(command->name, command->args, environ); // exec+args+path+environ
@@ -378,6 +418,9 @@ int process_command(struct command_t *command)
 	}
 	else
 	{
+		// TODO: Update history?
+		histsize++;
+		
 		//Already Implemented
 		if (!command->background)
 			wait(0); // wait for child process to finish
@@ -385,14 +428,6 @@ int process_command(struct command_t *command)
 	}
 
 	// TODO: your implementation here
-	// ADD HISTORY STRING ARRAY (functioning as a queue)
-	// ADD EVERY EXECUTION TO THE TOP OF HISTORY ARRAY
-	// Implement !!
-		// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
-		// Else if command->repeat flag is set, print the command from the top of the history.
-		// Replace all !!'s in the command with the string from the top of the history array.
-
-	//NOTE: DEBUG diyen satırları kullanmayı UNUTMAYIN!
 
 	printf("-%s: %s: command not found\n", sysname, command->name);
 	return UNKNOWN;
