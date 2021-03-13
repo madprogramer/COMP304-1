@@ -26,6 +26,14 @@ struct command_t {
 	char *redirects[3]; // in/out redirection
 	struct command_t *next; // for piping
 };
+
+struct hist {
+	char commands[HISTORYSIZE][BUFFERSIZE];
+	int length;
+};
+
+typedef struct hist history;
+
 /**
  * Prints a command struct
  * @param struct command_t *
@@ -212,15 +220,12 @@ void prompt_backspace()
  * @param  buf_size [description]
  * @return          [description]
  */
-int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
+int prompt(struct command_t *command, history *h)
 {
 	int index=0;
 	char c;
 	char buf[4096];
 	static char oldbuf[4096];
-
-	//PROBLEM HERE
-	int histsize = 0;
 
 	//static char history[5][4096];
 
@@ -303,11 +308,16 @@ int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
   		index--;
   	buf[index++]=0; // null terminate string
 
-  	//TODO: Copy into top of history instead of oldbuf
+  	//TODO: Copy into top of history instead of only oldbuf
   	strcpy(oldbuf, buf);
+
   	//TODO: Push top of history back
   	//for()
   	//strcpy(history[i], history[i+1]);
+  	
+  	// TODO: Update history?
+	//histsize++;
+	h->length+=1;
 
   	parse_command(buf, command);
 
@@ -317,12 +327,13 @@ int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
   	return SUCCESS;
 }
-int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE]);
+int process_command(struct command_t *command, history *h);
 int main()
 {
-	//TODO: Wait for response from BB
 	
-	static char history[HISTORYSIZE][BUFFERSIZE];
+	//INIT HISTORY
+	history *h=malloc(sizeof(history));
+	memset(h, 0, sizeof(history));
 
 	while (1)
 	{
@@ -331,11 +342,11 @@ int main()
 
 		int code;
 		//code = prompt(command);
-		code = prompt(command,history);
+		code = prompt(command,h);
 		if (code==EXIT) break;
 
 		//code = process_command(command);
-		code = process_command(command,history);
+		code = process_command(command,h);
 		if (code==EXIT) break;
 
 		free_command(command);
@@ -345,10 +356,9 @@ int main()
 	return 0;
 }
 
-int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
+int process_command(struct command_t *command, history *h)
 {
-	//TODO: Remove histsize
-	static int histsize = 0;
+
 	int r;
 	if (strcmp(command->name, "")==0) return SUCCESS;
 
@@ -374,7 +384,7 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 		if(command->repeat){
 
 			// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
-			if (histsize == 0){
+			if (h->length == 0){
 				printf("No commands in history.\n");
 				exit(0);
 			}
@@ -390,6 +400,7 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 
 			// TODO:
 			// Replace all !!'s in the command with the string from the top of the history array.
+			// Including the top of history!
 
 		}
 
@@ -422,9 +433,6 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 	}
 	else
 	{
-		// TODO: Update history?
-		histsize++;
-
 		//Already Implemented
 		if (!command->background)
 			wait(0); // wait for child process to finish
