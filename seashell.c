@@ -254,17 +254,17 @@ int prompt(struct command_t *command)
 			}
 			continue;
 		}
-		if (c==27 && multicode_state==0) // handle multi-code keys
+		if (c==27 && multicode_state==0) // handle multi-code keys //up
 		{
 			multicode_state=1;
 			continue;
 		}
-		if (c==91 && multicode_state==1)
+		if (c==91 && multicode_state==1) //
 		{
 			multicode_state=2;
 			continue;
 		}
-		if (c==65 && multicode_state==2) // up arrow
+		if (c==65 && multicode_state==2) // up arrow /unechoed A
 		{
 			int i;
 			while (index>0)
@@ -330,7 +330,8 @@ int main()
 int process_command(struct command_t *command)
 {
 	int r;
-	if (strcmp(command->name, "")==0) return SUCCESS;
+	if (strcmp(command->name, "")==0) 
+		return SUCCESS;
 
 	if (strcmp(command->name, "exit")==0)
 		return EXIT;
@@ -350,7 +351,7 @@ int process_command(struct command_t *command)
 	if (pid==0) // child
 	{
 		/// This shows how to do exec with environ (but is not available on MacOs)
-	    // extern char** environ; // environment variables
+	    //extern char** environ; // environment variables
 		// execvpe(command->name, command->args, environ); // exec+args+path+environ
 
 		/// This shows how to do exec with auto-path resolve
@@ -373,14 +374,19 @@ int process_command(struct command_t *command)
 		execvp(command->name, command->args); // exec+args+path
 		exit(0);
 		/// TODO: do your own exec with path resolving using execv()
-		/// https://www.man7.org/linux/man-pages/man3/exec.3.html
-		/// execv
-	}
-	else
-	{
-		//Already Implemented
-		if (!command->background)
+		//char *environ = getenv("PATH");
+		//char split[] = ":";
+		//char *ptr = strtok(environ, split);
+		//while(ptr != NULL) {
+		//	ptr = strtok(NULL, split);
+		//}
+
+			
+		
+	} else {
+		if(!command->background) {
 			wait(0); // wait for child process to finish
+		}
 		return SUCCESS;
 	}
 
