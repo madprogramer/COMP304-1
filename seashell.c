@@ -267,29 +267,20 @@ int prompt(struct command_t *command, history *h)
 			}
 			continue;
 		}
-<<<<<<< HEAD
-		if (c==27 && multicode_state==0) // handle multi-code keys //up
-=======
+
 		if (c==27 && multicode_state==0) // (UP) handle multi-code keys
->>>>>>> a60779cc24a701aec8ef56e46d916ff46dd09e8d
 		{
 			multicode_state=1;
 			continue;
 		}
-<<<<<<< HEAD
-		if (c==91 && multicode_state==1) //
-=======
+
 		if (c==91 && multicode_state==1) // ( ) )  ?
->>>>>>> a60779cc24a701aec8ef56e46d916ff46dd09e8d
 		{
 			multicode_state=2;
 			continue;
 		}
-<<<<<<< HEAD
-		if (c==65 && multicode_state==2) // up arrow /unechoed A
-=======
+
 		if (c==65 && multicode_state==2) // unechoed A
->>>>>>> a60779cc24a701aec8ef56e46d916ff46dd09e8d
 		{
 			int i;
 			while (index>0)
@@ -414,6 +405,7 @@ int process_command(struct command_t *command, history *h)
 		if(command->repeat){
 
 			// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
+
 			if (h->length <= 1){
 				printf("No commands in history.\n");
 				exit(0);
@@ -459,7 +451,8 @@ int process_command(struct command_t *command, history *h)
 		execvp(command->name, command->args); // exec+args+path
 		exit(0);
 		/// TODO: do your own exec with path resolving using execv()
-<<<<<<< HEAD
+		/// DONE
+
 		char *environ = getenv("PATH");
 		char *fileToCheck = environ;
 		char split[] = ":";
@@ -479,16 +472,8 @@ int process_command(struct command_t *command, history *h)
 			
 		
 	} else {
-		if(!command->background) {
-=======
-		/// https://www.man7.org/linux/man-pages/man3/exec.3.html
-		/// execv
-	}
-	else
-	{
 		//Already Implemented
-		if (!command->background)
->>>>>>> a60779cc24a701aec8ef56e46d916ff46dd09e8d
+		if (!command->background){
 			wait(0); // wait for child process to finish
 		}
 		return SUCCESS;
