@@ -367,6 +367,42 @@ int main()
 int process_command(struct command_t *command, history *h)
 {
 
+
+	//CHECK FOR REPEATS BEFORE FORKING
+	if(command->repeat){
+
+		// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
+
+		if (h->length <= 1){
+			printf("No commands in history.\n");
+			//DELETE !! from history
+			//printf("%s\n", h->commands[0]);
+			h->length = 0;
+			memset(h->commands[0], 0, sizeof(char) * BUFFERSIZE);
+			//printf("%s\n", h->commands[0]);
+			return SUCCESS;
+		}
+		
+		// Else print the command from the top of the history.
+		else{
+			//char lastbuff[4096];
+			//strcpy(oldbuff, lastbuff);
+			//printf("%s\n",lastbuff);
+
+			//h->commands[0] <- h->commands[1]
+			strcpy(command->name, h->commands[1]);
+			strcpy(h->commands[0], h->commands[1]);
+
+			//printf("%d\n", h->length);
+			//printf("There is a command in history but it's hidden from me :{\n");
+		}
+
+		// TODO: (NOT REQUIRED)
+		// Replace all !!'s in the command with the string from the top of the history array.
+		// Including the top of history!
+
+	}
+
 	int r;
 	if (strcmp(command->name, "")==0) 
 		return SUCCESS;
@@ -397,36 +433,10 @@ int process_command(struct command_t *command, history *h)
 		return SUCCESS;
 	}
 
+
 	pid_t pid=fork();
 	if (pid==0) // child
 	{
-
-		// TODO: History Repeats
-		if(command->repeat){
-
-			// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
-
-			if (h->length <= 1){
-				printf("No commands in history.\n");
-				exit(0);
-			}
-			
-			// Else print the command from the top of the history.
-			else{
-				//TODO: Replace with history instead of oldbuff
-				//char lastbuff[4096];
-				//strcpy(oldbuff, lastbuff);
-				//printf("%s\n",lastbuff);
-				printf("%d\n", h->length);
-				printf("There is a command in history but it's hidden from me :{\n");
-			}
-
-			// TODO:
-			// Replace all !!'s in the command with the string from the top of the history array.
-			// Including the top of history!
-
-		}
-
 		/// This shows how to do exec with environ (but is not available on MacOs)
 	    //extern char** environ; // environment variables
 		// execvpe(command->name, command->args, environ); // exec+args+path+environ
@@ -461,7 +471,7 @@ int process_command(struct command_t *command, history *h)
 		while(ptr != NULL) {
 		  	char *exeToCheck = strcat(fileToCheck, command->name);
 		    if(access(exeToCheck, F_OK) == 0){
-			   execv(exeToCheck, NULL);
+			   execv(exeToCheck, exeToCheck);
 			   break;
 		    } else {
 			  printf("%s\n", "File does not exist");
