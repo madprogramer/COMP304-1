@@ -374,12 +374,21 @@ int process_command(struct command_t *command)
 		execvp(command->name, command->args); // exec+args+path
 		exit(0);
 		/// TODO: do your own exec with path resolving using execv()
-		//char *environ = getenv("PATH");
-		//char split[] = ":";
-		//char *ptr = strtok(environ, split);
-		//while(ptr != NULL) {
-		//	ptr = strtok(NULL, split);
-		//}
+		char *environ = getenv("PATH");
+		char *fileToCheck = environ;
+		char split[] = ":";
+		char *ptr = strtok(environ, split);
+
+		while(ptr != NULL) {
+		  	char *exeToCheck = strcat(fileToCheck, command->name);
+		    if(access(exeToCheck, F_OK) == 0){
+			   execv(exeToCheck, NULL);
+			   break;
+		    } else {
+			  printf("%s\n", "File does not exist");
+		    }
+			ptr = strtok(NULL, split);
+		}
 
 			
 		
