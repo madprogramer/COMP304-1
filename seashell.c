@@ -26,6 +26,14 @@ struct command_t {
 	char *redirects[3]; // in/out redirection
 	struct command_t *next; // for piping
 };
+
+struct hist {
+	char commands[HISTORYSIZE][BUFFERSIZE];
+	int length;
+};
+
+typedef struct hist history;
+
 /**
  * Prints a command struct
  * @param struct command_t *
@@ -212,7 +220,7 @@ void prompt_backspace()
  * @param  buf_size [description]
  * @return          [description]
  */
-int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
+int prompt(struct command_t *command, history *h)
 {
 	int index=0;
 	char c;
@@ -303,11 +311,21 @@ int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
   		index--;
   	buf[index++]=0; // null terminate string
 
-  	//TODO: Copy into top of history instead of oldbuf
+  	//Push stack!
+  	int ih = HISTORYSIZE-2;
+  	for(;ih>=0;ih--){
+  		strcpy(h->commands[ih+1], h->commands[ih]);
+  	}
+
+  	//FIXME: Consider unifying oldbuf and history?
   	strcpy(oldbuf, buf);
-  	//TODO: Push top of history back
-  	//for()
-  	//strcpy(history[i], history[i+1]);
+  	strcpy(h->commands[0], buf);
+
+  	//Update length
+  	//printf("LENGTH WAS: %d\n", h->length);
+  	//FIXED OVERFLOW INTO h->length
+	h->length = ( (h->length) < HISTORYSIZE ) ? (h->length+1) : HISTORYSIZE;
+	//printf("LENTH IS NOW: %d\n", h->length);
 
   	parse_command(buf, command);
 
@@ -317,12 +335,13 @@ int prompt(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
   	return SUCCESS;
 }
-int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE]);
+int process_command(struct command_t *command, history *h);
 int main()
 {
-	//TODO: Wait for response from BB
 	
-	static char history[HISTORYSIZE][BUFFERSIZE];
+	//INIT HISTORY
+	history *h=malloc(sizeof(history));
+	memset(h, 0, sizeof(history));
 
 	while (1)
 	{
@@ -331,11 +350,11 @@ int main()
 
 		int code;
 		//code = prompt(command);
-		code = prompt(command,history);
+		code = prompt(command,h);
 		if (code==EXIT) break;
 
 		//code = process_command(command);
-		code = process_command(command,history);
+		code = process_command(command,h);
 		if (code==EXIT) break;
 
 		free_command(command);
@@ -345,8 +364,9 @@ int main()
 	return 0;
 }
 
-int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERSIZE])
+int process_command(struct command_t *command, history *h)
 {
+
 	int r;
 	if (strcmp(command->name, "")==0) 
 		return SUCCESS;
@@ -365,6 +385,18 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 		}
 	}
 
+	if (strcmp(command->name, "history")==0)
+	{
+		//printf("Time to make history!\n");
+
+	  	int ih = h->length - 1, L = h->length;
+	  	for(;ih>=0;ih--){
+	  		printf("%d %s\n", (L - ih), h->commands[ih]);
+	  	}
+
+		return SUCCESS;
+	}
+
 	pid_t pid=fork();
 	if (pid==0) // child
 	{
@@ -373,7 +405,8 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 		if(command->repeat){
 
 			// If HISTORY ARRAY IS EMPTY PRINT THE MESSAGE "No commands in history."
-			if (h->length == 0){
+
+			if (h->length <= 1){
 				printf("No commands in history.\n");
 				exit(0);
 			}
@@ -384,11 +417,13 @@ int process_command(struct command_t *command, char history[HISTORYSIZE][BUFFERS
 				//char lastbuff[4096];
 				//strcpy(oldbuff, lastbuff);
 				//printf("%s\n",lastbuff);
+				printf("%d\n", h->length);
 				printf("There is a command in history but it's hidden from me :{\n");
 			}
 
 			// TODO:
 			// Replace all !!'s in the command with the string from the top of the history array.
+			// Including the top of history!
 
 		}
 
