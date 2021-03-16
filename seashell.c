@@ -32,7 +32,16 @@ struct hist {
 	int length;
 };
 
+struct alias {
+	char shortName[BUFFERSIZE];
+	char longName[BUFFERSIZE];
+	struct alias *next;
+	struct alias *prev;
+};
+
 typedef struct hist history;
+
+typedef struct alias shortdir;
 
 /**
  * Prints a command struct
@@ -335,13 +344,17 @@ int prompt(struct command_t *command, history *h)
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
   	return SUCCESS;
 }
-int process_command(struct command_t *command, history *h);
+int process_command(struct command_t *command, history *h, shortdir *shortdirs);
 int main()
 {
 	
 	//INIT HISTORY
 	history *h=malloc(sizeof(history));
 	memset(h, 0, sizeof(history));
+
+	//INIT ALIASES
+	shortdir *shortdirs=malloc(sizeof(shortdir)); //shortdirs <- list of shortdirs
+	memset(shortdirs, 0, sizeof(shortdir));
 
 	while (1)
 	{
@@ -354,7 +367,8 @@ int main()
 		if (code==EXIT) break;
 
 		//code = process_command(command);
-		code = process_command(command,h);
+		//code = process_command(command,h);
+		code = process_command(command,h,shortdirs);
 		if (code==EXIT) break;
 
 		free_command(command);
@@ -364,9 +378,9 @@ int main()
 	return 0;
 }
 
-int process_command(struct command_t *command, history *h)
+int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 {
-
+	char cwd[1024];
 
 	//CHECK FOR REPEATS BEFORE FORKING
 	if(command->repeat){
@@ -397,7 +411,7 @@ int process_command(struct command_t *command, history *h)
 			//printf("There is a command in history but it's hidden from me :{\n");
 		}
 
-		// TODO: (NOT REQUIRED)
+		// (NOT REQUIRED)
 		// Replace all !!'s in the command with the string from the top of the history array.
 		// Including the top of history!
 
@@ -417,6 +431,56 @@ int process_command(struct command_t *command, history *h)
 			r=chdir(command->args[0]);
 			if (r==-1)
 				printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
+			return SUCCESS;
+		}
+	}
+
+	//PART II
+	if (strcmp(command->name, "shortdir")==0)
+	{
+		if (command->arg_count > 0)
+		{
+
+			//printf("%s, %s\n", command->args[0], command->args[1]);
+
+			if (strcmp(command->args[0], "set")==0 ){
+				//printf("Not yet implemented\n" );
+				//printf("%s %s\n", command->args[0], command->args[1]);
+				if (!(command->args[1])){
+					printf("error: name not specified for shortdir set.\n" );
+					return UNKNOWN;
+				}
+
+				shortdir *s;
+				s = shortdirs;
+				for (; s->next->shortName != NULL ; s=s->next ) {
+					//printf("SHIFTED\n" );
+				}
+
+				//ADD
+				strcpy(s->shortName,command->args[1]);
+			    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
+
+			    //RESERVE NEXT ELEMENT
+			    s->next=malloc(sizeof(shortdir));
+			    memset(s->next, 0, sizeof(shortdir));
+			    s->next->prev = s;
+
+			    printf("%s is set as an alias for %s\n",s->shortName,s->longName);
+			}
+			else if (strcmp(command->args[0], "jump")==0 ){
+				printf("Not yet implemented\n" );
+			}
+			else if (strcmp(command->args[0], "del")==0 ){
+				printf("Not yet implemented\n" );
+			}
+			else if (strcmp(command->args[0], "clear")==0 ){
+				printf("Not yet implemented\n" );
+			}
+			else if (strcmp(command->args[0], "list")==0 ){
+				printf("Not yet implemented\n" );
+			}
+
 			return SUCCESS;
 		}
 	}
