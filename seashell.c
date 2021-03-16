@@ -470,9 +470,32 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			}
 			else if (strcmp(command->args[0], "jump")==0 ){
 				printf("Not yet implemented\n" );
+
+				if (!(command->args[1])){
+					printf("error: name not specified for shortdir set.\n" );
+					return UNKNOWN;
+				}
+				shortdir *s;
+				s = shortdirs;
+				for (; s->next->shortName != NULL && s->next->shortName != command->args[1]; s=s->next ) {
+					//printf("SHIFTED\n" );
+				}
+				//TODO: JUMP TO s->longName
+
 			}
 			else if (strcmp(command->args[0], "del")==0 ){
 				printf("Not yet implemented\n" );
+
+				if (!(command->args[1])){
+					printf("error: name not specified for shortdir set.\n" );
+					return UNKNOWN;
+				}
+				shortdir *s;
+				s = shortdirs;
+				for (; s->next->shortName != NULL && s->next->shortName != command->args[1]; s=s->next ) {
+					//printf("SHIFTED\n" );
+				}
+				//TODO: REMOVE s from the list!
 			}
 			else if (strcmp(command->args[0], "clear")==0 ){
 				printf("Not yet implemented\n" );
