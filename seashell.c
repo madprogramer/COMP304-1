@@ -501,7 +501,11 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				printf("Not yet implemented\n" );
 			}
 			else if (strcmp(command->args[0], "list")==0 ){
-				printf("Not yet implemented\n" );
+				shortdir *s;
+				s = shortdirs;
+				for (; s->next->shortName != NULL ; s=s->next ) {
+					printf("%s is an alias for %s\n", s->shortName, s->longName );
+				}
 			}
 
 			return SUCCESS;
