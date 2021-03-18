@@ -477,7 +477,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				}
 				shortdir *s;
 				s = shortdirs;
-				for (; s->next->shortName != NULL && s->next->shortName != command->args[1]; s=s->next ) {
+				for (; s->next->shortName != NULL && strcmp(s->next->shortName, command->args[1])!=0; s=s->next ) {
 					//printf("SHIFTED\n" );
 				}
 				//TODO: JUMP TO s->longName
@@ -492,7 +492,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				}
 				shortdir *s;
 				s = shortdirs;
-				for (; s->next->shortName != NULL && s->next->shortName != command->args[1]; s=s->next ) {
+				for (; s->next->shortName != NULL && strcmp(s->next->shortName, command->args[1])!=0; s=s->next ) {
 					//printf("SHIFTED\n" );
 				}
 				//TODO: REMOVE s from the list!
