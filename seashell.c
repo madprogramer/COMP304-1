@@ -647,7 +647,6 @@ int save_aliases(shortdir *shortdirs){
         exit(1);
     }
 
-    //TODO: LOOP OVER shortdirs
     shortdir *s = shortdirs;
 	for (; s->next->shortName != NULL ; s=s->next ) {
 	    fprintf(fptr, "%s F %s\n", s->shortName, s->longName);
@@ -658,12 +657,47 @@ int save_aliases(shortdir *shortdirs){
 	return 0;
 }
 void load_aliases(shortdir *shortdirs){
-	printf("I AM LOADING\n");
 
-    /*char buff[BUZZ_SIZE];
+	//printf("I AM LOADING\n");
+
+    shortdir *s = shortdirs;
+
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
     FILE *f = fopen(aliasfile, "r");
-    //TODO: LOOP OVER shortdirs
-    fgets(buff, BUZZ_SIZE, f);
-    printf("String read: %s\n", buff);
-    fclose(f);*/
+    if (f == NULL)
+        exit(EXIT_FAILURE);
+
+    while ((read = getline(&line, &len, f)) != -1) {
+        //printf("Retrieved line of length %zu:\n", read);
+        //printf("%s", line);
+
+        //seperate alias and longname
+		char *token = strtok(line, " F ");
+		strcpy(s->shortName,token);
+		token = strtok(NULL, " F ");
+		token[strcspn(token, "\n")] = 0;
+	    strcpy(s->longName,token);
+
+	    //printf("%s : %s\n",s->shortName,s->longName);
+
+	    //RESERVE NEXT ELEMENT
+	    s->next=malloc(sizeof(shortdir));
+	    memset(s->next, 0, sizeof(shortdir));
+	    s->next->prev = s;
+	    s=s->next;
+    }
+
+    fclose(f);
+
+    if (line)
+        free(line);
+
+    //BU BiRAZ DAHA ZOR OLUCAK
+
+	/*for (; s->next->shortName != NULL ; s=s->next ) {
+	    fprintf(fptr, "%s F %s\n", s->shortName, s->longName);
+	}*/
 }
