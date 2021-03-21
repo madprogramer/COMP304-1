@@ -469,7 +469,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			    printf("%s is set as an alias for %s\n",s->shortName,s->longName);
 			}
 			else if (strcmp(command->args[0], "jump")==0 ){
-				printf("Not yet implemented\n" );
+				//printf("Not yet implemented\n" );
 
 				if (!(command->args[1])){
 					printf("error: name not specified for shortdir set.\n" );
@@ -477,11 +477,16 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				}
 				shortdir *s;
 				s = shortdirs;
-				for (; s->next->shortName != NULL && strcmp(s->next->shortName, command->args[1])!=0; s=s->next ) {
+				for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[1])!=0; s=s->next ) {
 					//printf("SHIFTED\n" );
+					//printf("%s : %s\n", s->shortName, s->longName);
+					//printf("%s : %s\n", s->shortName, command->args[1]);
 				}
-				//TODO: JUMP TO s->longName
-
+				//printf("%s : %s\n", s->shortName, s->longName);
+				r=chdir(s->longName);
+				if (r==-1)
+					printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
+				return SUCCESS;
 			}
 			else if (strcmp(command->args[0], "del")==0 ){
 				printf("Not yet implemented\n" );
@@ -492,7 +497,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				}
 				shortdir *s;
 				s = shortdirs;
-				for (; s->next->shortName != NULL && strcmp(s->next->shortName, command->args[1])!=0; s=s->next ) {
+				for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[1])!=0; s=s->next ) {
 					//printf("SHIFTED\n" );
 				}
 				//TODO: REMOVE s from the list!
