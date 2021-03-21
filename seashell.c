@@ -344,10 +344,13 @@ int prompt(struct command_t *command, history *h)
     tcsetattr(STDIN_FILENO, TCSANOW, &backup_termios);
   	return SUCCESS;
 }
+//PROTOTYPES
 int process_command(struct command_t *command, history *h, shortdir *shortdirs);
+int save_aliases(shortdir *shortdirs);
+void load_aliases(shortdir *shortdirs);
+
 int main()
 {
-	
 	//INIT HISTORY
 	history *h=malloc(sizeof(history));
 	memset(h, 0, sizeof(history));
@@ -355,6 +358,9 @@ int main()
 	//INIT ALIASES
 	shortdir *shortdirs=malloc(sizeof(shortdir)); //shortdirs <- list of shortdirs
 	memset(shortdirs, 0, sizeof(shortdir));
+	load_aliases(shortdirs);
+	//atexit(save_aliases(shortdirs));
+	//buggy because of forks exitting!
 
 	while (1)
 	{
@@ -372,8 +378,12 @@ int main()
 		if (code==EXIT) break;
 
 		free_command(command);
-	}
 
+		//SAVE SESSION
+		save_aliases(shortdirs);
+	}
+	//SAVE ALIASES
+	save_aliases(shortdirs);
 	printf("\n");
 	return 0;
 }
@@ -623,4 +633,12 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 	printf("-%s: %s: command not found\n", sysname, command->name);
 	return UNKNOWN;
+}
+
+int save_aliases(shortdir *shortdirs){
+	printf("I AM SAVING\n");
+	return 0;
+}
+void load_aliases(shortdir *shortdirs){
+	printf("I AM LOADING\n");
 }
