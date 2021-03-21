@@ -438,6 +438,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 	//PART II
 	if (strcmp(command->name, "shortdir")==0)
 	{
+		//printf("SHORTDIRS POINTER: %p\n", (void*)&shortdirs);
 		if (command->arg_count > 0)
 		{
 
@@ -489,18 +490,40 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				return SUCCESS;
 			}
 			else if (strcmp(command->args[0], "del")==0 ){
-				printf("Not yet implemented\n" );
+				//printf("Not yet implemented\n" );
 
 				if (!(command->args[1])){
 					printf("error: name not specified for shortdir set.\n" );
 					return UNKNOWN;
 				}
+
 				shortdir *s;
 				s = shortdirs;
+				int isHead = 1;
+
 				for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[1])!=0; s=s->next ) {
 					//printf("SHIFTED\n" );
+					isHead = 0;
 				}
-				//TODO: REMOVE s from the list!
+
+				if (!(isHead)){
+					//REMOVE S
+					shortdir *head = s->prev, *tail = s->next;
+					head->next = tail; tail->prev = head;
+					free(s);
+				}
+				else{
+					//SHIFT SHORTDIRS POINTER!
+					shortdir *tail = s->next;
+
+					//COPY VALUES
+					strcpy(shortdirs->shortName,tail->shortName);
+					strcpy(shortdirs->longName,tail->longName);
+
+					shortdirs->next = tail->next;
+
+					free(tail);
+				}
 			}
 			else if (strcmp(command->args[0], "clear")==0 ){
 				printf("Not yet implemented\n" );
