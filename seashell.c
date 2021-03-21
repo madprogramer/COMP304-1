@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <errno.h>
 const char * sysname = "seashell";
+const char * aliasfile = "aliases.txt";
 
 #define HISTORYSIZE 5
 #define BUFFERSIZE 4096
@@ -636,9 +637,33 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 }
 
 int save_aliases(shortdir *shortdirs){
-	printf("I AM SAVING\n");
+	//printf("I AM SAVING\n");
+
+    FILE *fptr = fopen(aliasfile, "w");
+
+    // exiting program 
+    if (fptr == NULL) {
+        printf("Error! Can't save aliases!");
+        exit(1);
+    }
+
+    //TODO: LOOP OVER shortdirs
+    shortdir *s = shortdirs;
+	for (; s->next->shortName != NULL ; s=s->next ) {
+	    fprintf(fptr, "%s F %s\n", s->shortName, s->longName);
+	}
+
+	fclose(fptr);
+
 	return 0;
 }
 void load_aliases(shortdir *shortdirs){
 	printf("I AM LOADING\n");
+
+    /*char buff[BUZZ_SIZE];
+    FILE *f = fopen(aliasfile, "r");
+    //TODO: LOOP OVER shortdirs
+    fgets(buff, BUZZ_SIZE, f);
+    printf("String read: %s\n", buff);
+    fclose(f);*/
 }
