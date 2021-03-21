@@ -526,7 +526,18 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				}
 			}
 			else if (strcmp(command->args[0], "clear")==0 ){
-				printf("Not yet implemented\n" );
+				shortdir *s = shortdirs;
+				for (; s->next != NULL; s=s->next ) {
+				}
+
+				//REVERSE
+				for (; s != shortdirs; ) {
+					free(s);
+					s=s->prev;
+				}
+
+				//AT SHORTDIRS
+				memset(shortdirs,0,sizeof(shortdir));
 			}
 			else if (strcmp(command->args[0], "list")==0 ){
 				shortdir *s;
