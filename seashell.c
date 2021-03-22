@@ -562,6 +562,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		}
 	}
 
+	//PART I
 	if (strcmp(command->name, "history")==0)
 	{
 		//printf("Time to make history!\n");
@@ -574,6 +575,91 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		return SUCCESS;
 	}
 
+	//PART III: Word finder for highlighting
+	if (strcmp(command->name, "highlight")==0)
+	{
+
+		if (command->arg_count == 3) {
+
+			char word[2048];
+			strcpy(word,command->args[0]);
+
+			char color[2];
+			strcpy(color,command->args[1]);
+
+			char filename[2048];
+			strcpy(filename,command->args[2]);
+
+    		char * line = NULL;
+    		size_t len = 0;
+    		ssize_t read;
+
+    		FILE *f = fopen(filename, "r");
+    		if (f == NULL)
+        		exit(EXIT_FAILURE);
+
+        	int linecount=0;
+			//getting each line
+   			while ((read = getline(&line, &len, f)) != -1) {
+
+   				//printf("Line %d\n", ++linecount);
+   				//strstrip(line);
+
+				//Checks that the line should be printed or not
+				int stringsOfColor = 0;
+        		//tokenizing string
+				char *token = strtok(line, " \t\n");
+				//we are copying whole line to this one token by token
+				char lineAbouttaBePrinted[4096]="";
+				//memset(lineAbouttaBePrinted,0,4096*sizeof(char));
+				//going through tokens until the end of line
+				while(token != NULL) {
+					//checking whether this token is what we are looking for
+					if(strcmp(token, word) == 0) {
+						//Turn the string into red
+						if(strcmp(color, "r") == 0) {
+							char red[512] = "\e[31m\e[5m\e[1m";
+							strcat(red, token);
+							strcat(red, "\033[1m\033[0m");
+							token = red;
+							stringsOfColor = 1;
+						}
+						//Turn the string into green
+						if(strcmp(color, "g") == 0) {
+							char green[512] = "\e[32m\e[5m\e[1m";
+							strcat(green, token);
+							strcat(green, "\033[1m\033[0m");
+							token = green;
+							stringsOfColor = 1;
+						}
+						//Turn the string into blue
+						if(strcmp(color, "b") == 0) {
+							char blue[512] = "\e[34m\e[5m\e[1m";
+							strcat(blue, token);
+							strcat(blue, "\033[1m\033[0m");
+							token = blue;
+							stringsOfColor = 1;
+						}
+					}
+					//Adding the token to the reconstructed line
+					strcat(lineAbouttaBePrinted, token);
+					strcat(lineAbouttaBePrinted, " ");
+					//Tokenizing for the next loop
+					token = strtok(NULL, " \t\n");
+				}
+				//If stringsOfColor exists we are printling the whole line
+				if(stringsOfColor == 1) {
+					printf(lineAbouttaBePrinted);
+				}
+    		}
+
+    		fclose(f);
+
+    		if (line)
+        		free(line);
+		}
+		return SUCCESS;
+	}
 
 	pid_t pid=fork();
 	if (pid==0) // child
@@ -619,8 +705,6 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		    }
 			ptr = strtok(NULL, split);
 		}
-
-			
 		
 	} else {
 		//Already Implemented
@@ -702,52 +786,3 @@ void load_aliases(shortdir *shortdirs){
 	}*/
 }
 
-////// PART3 : Word finder for highlighting
-void wordFinder(shortdir* shortdirs) {
-	if (strcmp(command->name, "highlight")==0)
-	{
-		if (command->arg_count == 2) {
-			shortdir *s = shortdirs;
-
-    		char * line = NULL;
-    		size_t len = 0;
-    		ssize_t read;
-
-    		FILE *f = fopen(aliasfile, "r");
-    		if (f == NULL)
-        		exit(EXIT_FAILURE);
-
-			//getting each line
-   			while ((read = getline(&line, &len, f)) != -1) {
-				//Saving the line because tokenizing will corrupt the original one
-				char *lineAbouttaBePrinted = read;
-        		//tokenizing strings
-				char *token = strtok(line, " ");
-				//going through tokens until the end of line
-				while(token != NULL) {
-					//checking whether this token is what we are looking for
-					if(strcmp(token, command->args[0]) == 0) {
-						//Turn the string into red
-						if(command->args[1] == "r") {
-
-						}
-						//Turn the string into green
-						if(command->args[1] == "g") {
-							
-						}
-						//Turn the string into blue
-						if(command->args[1] == "b") {
-							
-						}
-					}
-				}
-    		}
-
-    		fclose(f);
-
-    		if (line)
-        		free(line);
-
-		}
-	}
-}
