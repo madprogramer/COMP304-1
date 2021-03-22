@@ -701,3 +701,53 @@ void load_aliases(shortdir *shortdirs){
 	    fprintf(fptr, "%s F %s\n", s->shortName, s->longName);
 	}*/
 }
+
+////// PART3 : Word finder for highlighting
+void wordFinder(shortdir* shortdirs) {
+	if (strcmp(command->name, "highlight")==0)
+	{
+		if (command->arg_count == 2) {
+			shortdir *s = shortdirs;
+
+    		char * line = NULL;
+    		size_t len = 0;
+    		ssize_t read;
+
+    		FILE *f = fopen(aliasfile, "r");
+    		if (f == NULL)
+        		exit(EXIT_FAILURE);
+
+			//getting each line
+   			while ((read = getline(&line, &len, f)) != -1) {
+				//Saving the line because tokenizing will corrupt the original one
+				char *lineAbouttaBePrinted = read;
+        		//tokenizing strings
+				char *token = strtok(line, " ");
+				//going through tokens until the end of line
+				while(token != NULL) {
+					//checking whether this token is what we are looking for
+					if(strcmp(token, command->args[0]) == 0) {
+						//Turn the string into red
+						if(command->args[1] == "r") {
+
+						}
+						//Turn the string into green
+						if(command->args[1] == "g") {
+							
+						}
+						//Turn the string into blue
+						if(command->args[1] == "b") {
+							
+						}
+					}
+				}
+    		}
+
+    		fclose(f);
+
+    		if (line)
+        		free(line);
+
+		}
+	}
+}
