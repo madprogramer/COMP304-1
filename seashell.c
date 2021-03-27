@@ -688,7 +688,23 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			}
 			return SUCCESS;
 		}
-		
+
+		//PART IV: alarm
+		else if (strcmp(command->args[0], "goodMorning")==0){
+			printf("NOT Implemented\n");
+		}
+
+		//PART V: kdiff
+		else if (strcmp(command->args[0], "kdiff")==0){
+			printf("NOT Implemented\n");
+		}
+
+		//PART VI: favorite command
+		else if (strcmp(command->args[0], "myfavorite")==0){
+			printf("NOT Implemented\n");
+		}
+
+
 		//Non-Builtins
 		else
 		{
@@ -729,7 +745,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 }
 
 int save_aliases(shortdir *shortdirs){
-	//printf("I AM SAVING\n");
+	printf("BUG: Make sure aliases.txt is saved to the root directory (not temp/aliases.txt)\n");
 
     FILE *fptr = fopen(aliasfile, "w");
 
