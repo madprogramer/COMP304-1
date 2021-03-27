@@ -428,6 +428,8 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 	}
 
+	//INSTANT BUILT-INS
+
 	int r;
 	if (strcmp(command->name, "")==0) 
 		return SUCCESS;
@@ -444,221 +446,6 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
 			return SUCCESS;
 		}
-	}
-
-	//PART II
-	if (strcmp(command->name, "shortdir")==0)
-	{
-		//printf("SHORTDIRS POINTER: %p\n", (void*)&shortdirs);
-		if (command->arg_count > 0)
-		{
-
-			//printf("%s, %s\n", command->args[0], command->args[1]);
-
-			if (strcmp(command->args[0], "set")==0 ){
-				//printf("Not yet implemented\n" );
-				//printf("%s %s\n", command->args[0], command->args[1]);
-				if (!(command->args[1])){
-					printf("error: name not specified for shortdir set.\n" );
-					return UNKNOWN;
-				}
-
-				shortdir *s;
-				s = shortdirs;
-				for (; s->next->shortName != NULL ; s=s->next ) {
-					//printf("SHIFTED\n" );
-				}
-
-				//ADD
-				strcpy(s->shortName,command->args[1]);
-			    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
-
-			    //RESERVE NEXT ELEMENT
-			    s->next=malloc(sizeof(shortdir));
-			    memset(s->next, 0, sizeof(shortdir));
-			    s->next->prev = s;
-
-			    printf("%s is set as an alias for %s\n",s->shortName,s->longName);
-			}
-			else if (strcmp(command->args[0], "jump")==0 ){
-				//printf("Not yet implemented\n" );
-
-				if (!(command->args[1])){
-					printf("error: name not specified for shortdir set.\n" );
-					return UNKNOWN;
-				}
-				shortdir *s;
-				s = shortdirs;
-				for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[1])!=0; s=s->next ) {
-					//printf("SHIFTED\n" );
-					//printf("%s : %s\n", s->shortName, s->longName);
-					//printf("%s : %s\n", s->shortName, command->args[1]);
-				}
-				//printf("%s : %s\n", s->shortName, s->longName);
-				r=chdir(s->longName);
-				if (r==-1)
-					printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
-				return SUCCESS;
-			}
-			else if (strcmp(command->args[0], "del")==0 ){
-				//printf("Not yet implemented\n" );
-
-				if (!(command->args[1])){
-					printf("error: name not specified for shortdir set.\n" );
-					return UNKNOWN;
-				}
-
-				shortdir *s;
-				s = shortdirs;
-				int isHead = 1;
-
-				for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[1])!=0; s=s->next ) {
-					//printf("SHIFTED\n" );
-					isHead = 0;
-				}
-
-				if (!(isHead)){
-					//REMOVE S
-					shortdir *head = s->prev, *tail = s->next;
-					head->next = tail; tail->prev = head;
-					free(s);
-				}
-				else{
-					//SHIFT SHORTDIRS POINTER!
-					shortdir *tail = s->next;
-
-					//COPY VALUES
-					strcpy(shortdirs->shortName,tail->shortName);
-					strcpy(shortdirs->longName,tail->longName);
-
-					shortdirs->next = tail->next;
-
-					free(tail);
-				}
-			}
-			else if (strcmp(command->args[0], "clear")==0 ){
-				shortdir *s = shortdirs;
-				for (; s->next != NULL; s=s->next ) {
-				}
-
-				//REVERSE
-				for (; s != shortdirs; ) {
-					free(s);
-					s=s->prev;
-				}
-
-				//AT SHORTDIRS
-				memset(shortdirs,0,sizeof(shortdir));
-			}
-			else if (strcmp(command->args[0], "list")==0 ){
-				shortdir *s;
-				s = shortdirs;
-				for (; s->next->shortName != NULL ; s=s->next ) {
-					printf("%s is an alias for %s\n", s->shortName, s->longName );
-				}
-			}
-
-			return SUCCESS;
-		}
-	}
-
-	//PART I
-	if (strcmp(command->name, "history")==0)
-	{
-		//printf("Time to make history!\n");
-
-	  	int ih = h->length - 1, L = h->length;
-	  	for(;ih>=0;ih--){
-	  		printf("%d %s\n", (L - ih), h->commands[ih]);
-	  	}
-
-		return SUCCESS;
-	}
-
-	//PART III: Word finder for highlighting
-	if (strcmp(command->name, "highlight")==0)
-	{
-
-		if (command->arg_count == 3) {
-
-			char word[2048];
-			strcpy(word,command->args[0]);
-
-			char color[2];
-			strcpy(color,command->args[1]);
-
-			char filename[2048];
-			strcpy(filename,command->args[2]);
-
-    		char * line = NULL;
-    		size_t len = 0;
-    		ssize_t read;
-
-    		FILE *f = fopen(filename, "r");
-    		if (f == NULL)
-        		exit(EXIT_FAILURE);
-
-        	int linecount=0;
-			//getting each line
-   			while ((read = getline(&line, &len, f)) != -1) {
-
-   				//printf("Line %d\n", ++linecount);
-   				//strstrip(line);
-
-				//Checks that the line should be printed or not
-				int stringsOfColor = 0;
-        		//tokenizing string
-				char *token = strtok(line, " \t\n");
-				//we are copying whole line to this one token by token
-				char lineAbouttaBePrinted[4096]="";
-				//memset(lineAbouttaBePrinted,0,4096*sizeof(char));
-				//going through tokens until the end of line
-				while(token != NULL) {
-					//checking whether this token is what we are looking for
-					if(strcmp(token, word) == 0) {
-						//Turn the string into red
-						if(strcmp(color, "r") == 0) {
-							char red[512] = "\e[31m\e[5m\e[1m";
-							strcat(red, token);
-							strcat(red, "\033[1m\033[0m");
-							token = red;
-							stringsOfColor = 1;
-						}
-						//Turn the string into green
-						if(strcmp(color, "g") == 0) {
-							char green[512] = "\e[32m\e[5m\e[1m";
-							strcat(green, token);
-							strcat(green, "\033[1m\033[0m");
-							token = green;
-							stringsOfColor = 1;
-						}
-						//Turn the string into blue
-						if(strcmp(color, "b") == 0) {
-							char blue[512] = "\e[34m\e[5m\e[1m";
-							strcat(blue, token);
-							strcat(blue, "\033[1m\033[0m");
-							token = blue;
-							stringsOfColor = 1;
-						}
-					}
-					//Adding the token to the reconstructed line
-					strcat(lineAbouttaBePrinted, token);
-					strcat(lineAbouttaBePrinted, " ");
-					//Tokenizing for the next loop
-					token = strtok(NULL, " \t\n");
-				}
-				//If stringsOfColor exists we are printling the whole line
-				if(stringsOfColor == 1) {
-					printf(lineAbouttaBePrinted);
-				}
-    		}
-
-    		fclose(f);
-
-    		if (line)
-        		free(line);
-		}
-		return SUCCESS;
 	}
 
 	pid_t pid=fork();
@@ -685,8 +472,229 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		// set args[arg_count-1] (last) to NULL
 		command->args[command->arg_count-1]=NULL;
 
-		execvp(command->name, command->args); // exec+args+path
-		exit(0);
+		//OUR BUILT-IN COMMANDS GO HERE
+
+		//PART II
+		if (strcmp(command->args[0], "shortdir")==0)
+		{
+			//printf("SHORTDIRS POINTER: %p\n", (void*)&shortdirs);
+			if (command->arg_count > 0)
+			{
+
+				//printf("%s, %s\n", command->args[0], command->args[1]);
+
+				if (strcmp(command->args[1], "set")==0 ){
+					//printf("Not yet implemented\n" );
+					//printf("%s %s\n", command->args[0], command->args[1]);
+					if (!(command->args[1])){
+						printf("error: name not specified for shortdir set.\n" );
+						return UNKNOWN;
+					}
+
+					shortdir *s;
+					s = shortdirs;
+					for (; s->next->shortName != NULL ; s=s->next ) {
+						//printf("SHIFTED\n" );
+					}
+
+					//ADD
+					strcpy(s->shortName,command->args[2]);
+				    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
+
+				    //RESERVE NEXT ELEMENT
+				    s->next=malloc(sizeof(shortdir));
+				    memset(s->next, 0, sizeof(shortdir));
+				    s->next->prev = s;
+
+				    printf("%s is set as an alias for %s\n",s->shortName,s->longName);
+				}
+				else if (strcmp(command->args[1], "jump")==0 ){
+					//printf("Not yet implemented\n" );
+
+					if (!(command->args[2])){
+						printf("error: name not specified for shortdir set.\n" );
+						return UNKNOWN;
+					}
+					shortdir *s;
+					s = shortdirs;
+					for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
+						//printf("SHIFTED\n" );
+						//printf("%s : %s\n", s->shortName, s->longName);
+						//printf("%s : %s\n", s->shortName, command->args[1]);
+					}
+					//printf("%s : %s\n", s->shortName, s->longName);
+					r=chdir(s->longName);
+					if (r==-1)
+						printf("-%s: %s: %s\n", sysname, command->name, strerror(errno));
+					return SUCCESS;
+				}
+				else if (strcmp(command->args[1], "del")==0 ){
+					//printf("Not yet implemented\n" );
+
+					if (!(command->args[2])){
+						printf("error: name not specified for shortdir set.\n" );
+						return UNKNOWN;
+					}
+
+					shortdir *s;
+					s = shortdirs;
+					int isHead = 1;
+
+					for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
+						//printf("SHIFTED\n" );
+						isHead = 0;
+					}
+
+					if (!(isHead)){
+						//REMOVE S
+						shortdir *head = s->prev, *tail = s->next;
+						head->next = tail; tail->prev = head;
+						free(s);
+					}
+					else{
+						//SHIFT SHORTDIRS POINTER!
+						shortdir *tail = s->next;
+
+						//COPY VALUES
+						strcpy(shortdirs->shortName,tail->shortName);
+						strcpy(shortdirs->longName,tail->longName);
+
+						shortdirs->next = tail->next;
+
+						free(tail);
+					}
+				}
+				else if (strcmp(command->args[1], "clear")==0 ){
+					shortdir *s = shortdirs;
+					for (; s->next != NULL; s=s->next ) {
+					}
+
+					//REVERSE
+					for (; s != shortdirs; ) {
+						free(s);
+						s=s->prev;
+					}
+
+					//AT SHORTDIRS
+					memset(shortdirs,0,sizeof(shortdir));
+				}
+				else if (strcmp(command->args[1], "list")==0 ){
+					shortdir *s;
+					s = shortdirs;
+					for (; s->next->shortName != NULL ; s=s->next ) {
+						printf("%s is an alias for %s\n", s->shortName, s->longName );
+					}
+				}
+
+				return SUCCESS;
+			}
+		}
+
+		//PART I
+		else if (strcmp(command->args[0], "history")==0)
+		{
+			//printf("Time to make history!\n");
+
+		  	int ih = h->length - 1, L = h->length;
+		  	for(;ih>=0;ih--){
+		  		printf("%d %s\n", (L - ih), h->commands[ih]);
+		  	}
+
+			return SUCCESS;
+		}
+
+		//PART III: Word finder for highlighting
+		else if (strcmp(command->args[0], "highlight")==0)
+		{
+			printf("%d\n", command->arg_count);
+			if (command->arg_count == 5) {
+
+				char word[2048];
+				strcpy(word,command->args[1]);
+
+				char color[2];
+				strcpy(color,command->args[2]);
+
+				char filename[2048];
+				strcpy(filename,command->args[3]);
+
+	    		char * line = NULL;
+	    		size_t len = 0;
+	    		ssize_t read;
+
+	    		FILE *f = fopen(filename, "r");
+	    		if (f == NULL)
+	        		exit(EXIT_FAILURE);
+
+	        	int linecount=0;
+				//getting each line
+	   			while ((read = getline(&line, &len, f)) != -1) {
+
+	   				//printf("Line %d\n", ++linecount);
+	   				//strstrip(line);
+
+					//Checks that the line should be printed or not
+					int stringsOfColor = 0;
+	        		//tokenizing string
+					char *token = strtok(line, " \t\n");
+					//we are copying whole line to this one token by token
+					char lineAbouttaBePrinted[4096]="";
+					//memset(lineAbouttaBePrinted,0,4096*sizeof(char));
+					//going through tokens until the end of line
+					while(token != NULL) {
+						//checking whether this token is what we are looking for
+						if(strcmp(token, word) == 0) {
+							//Turn the string into red
+							if(strcmp(color, "r") == 0) {
+								char red[512] = "\e[31m\e[5m\e[1m";
+								strcat(red, token);
+								strcat(red, "\033[1m\033[0m");
+								token = red;
+								stringsOfColor = 1;
+							}
+							//Turn the string into green
+							if(strcmp(color, "g") == 0) {
+								char green[512] = "\e[32m\e[5m\e[1m";
+								strcat(green, token);
+								strcat(green, "\033[1m\033[0m");
+								token = green;
+								stringsOfColor = 1;
+							}
+							//Turn the string into blue
+							if(strcmp(color, "b") == 0) {
+								char blue[512] = "\e[34m\e[5m\e[1m";
+								strcat(blue, token);
+								strcat(blue, "\033[1m\033[0m");
+								token = blue;
+								stringsOfColor = 1;
+							}
+						}
+						//Adding the token to the reconstructed line
+						strcat(lineAbouttaBePrinted, token);
+						strcat(lineAbouttaBePrinted, " ");
+						//Tokenizing for the next loop
+						token = strtok(NULL, " \t\n");
+					}
+					//If stringsOfColor exists we are printling the whole line
+					if(stringsOfColor == 1) {
+						printf(lineAbouttaBePrinted);
+					}
+	    		}
+
+	    		fclose(f);
+
+	    		if (line)
+	        		free(line);
+			}
+			return SUCCESS;
+		}
+		
+		//Non-Builtins
+		else
+		{
+			execvp(command->name, command->args); // exec+args+path
+			exit(0);
+		}
 		/// TODO: do your own exec with path resolving using execv()
 		/// DONE
 
