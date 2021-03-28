@@ -8,6 +8,8 @@
 #include <errno.h>
 const char * sysname = "seashell";
 const char * aliasfile = "aliases.txt";
+const char * alarmfile = "alarm.txt";
+
 
 #define HISTORYSIZE 5
 #define BUFFERSIZE 4096
@@ -705,7 +707,16 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 			//2. Write crontab command to file
 
-			
+			FILE *fptr = fopen(alarmfile, "w");
+
+		    if (fptr == NULL) {
+		        printf("Error! Can't save alarm!");
+		        exit(1);
+		    }
+
+			fprintf(fptr, "%d %d * * * DISPLAY=:0.0 /usr/bin/rhythmbox-client --play %s\n", min, hour, filename);
+
+			fclose(fptr);
 
 			//3. exec to read crontab
 
