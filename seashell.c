@@ -608,7 +608,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		//PART III: Word finder for highlighting
 		else if (strcmp(command->args[0], "highlight")==0)
 		{
-			printf("%d\n", command->arg_count);
+			//printf("%d\n", command->arg_count);
 			if (command->arg_count == 5) {
 
 				char word[2048];
@@ -729,7 +729,67 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 		//PART V: kdiff
 		else if (strcmp(command->args[0], "kdiff")==0){
-			printf("NOT Implemented\n");
+			//printf("NOT Implemented\n");
+			
+			//SWITCH
+			//printf("%d\n", command->arg_count);
+			int mode = 0;
+			if(command->arg_count == 4) mode = 0;
+			else if(command->arg_count == 5){
+				char c;
+				sscanf(command->args[1], "-%c", &c);
+				
+				mode = ((c=='a')?0:1);
+				//printf("Mode: %d\n",mode);
+			}
+			else{
+				printf("E: Incorrect number of arguments for kdiff (2 or 3) \n");
+				return EXIT;
+			}
+
+			printf("MODE: %d\n",mode);
+
+			//Check file names
+
+			char filename1[2048], filename2[2048];
+
+			if(command->arg_count == 4){
+				strcpy(filename1,command->args[1]);
+				strcpy(filename2,command->args[2]);
+			}
+			else if(command->arg_count == 5){
+				strcpy(filename1,command->args[2]);
+				strcpy(filename2,command->args[3]);
+			}
+			else{
+				//printf("WE'VE GOT A PROBLEM CHIEF\n");
+				return EXIT;
+			}
+			//Make sure .txt
+			//printf("TESTING\n");
+
+			char body[2048],ext[2048];
+
+			char *ptr = strtok(filename1, ".\n");strcpy(body,ptr);ptr = strtok(NULL,".\n");strcpy(ext,ptr);
+			//printf("%s . %s \n", body, ext );
+			if(strcmp(ext,"txt")!=0) {
+				printf("E: File 1 is not a .txt file\n");
+				return EXIT;
+			}
+
+			ptr = strtok(filename2, ".\n");strcpy(body,ptr);ptr = strtok(NULL,".\n");strcpy(ext,ptr);
+			//printf("%s . %s \n", body, ext );
+			if(strcmp(ext,"txt")!=0) {
+				printf("E: File 2 is not a .txt file\n");
+				return EXIT;
+			}
+
+			//identical flag
+			int identical = 1;
+
+			//PART A (mode = 0)
+			//PART B (mode = 1)
+
 			return SUCCESS;
 		}
 
@@ -779,7 +839,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 }
 
 int save_aliases(shortdir *shortdirs){
-	printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\n");
+	printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\nConsider using getcwd()!\n");
 
     FILE *fptr = fopen(aliasfile, "w");
 
