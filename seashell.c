@@ -721,9 +721,10 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			//3. exec to read crontab
 
 			//$crontab alarm.txt
-
-			//execvp();
-			return SUCCESS;
+			//crontab alarm.txt
+			char *crontabexec[2] = {"crontab", alarmfile};
+			execvp(crontabexec[0], crontabexec);
+			exit(0);
 		}
 
 		//PART V: kdiff
@@ -778,7 +779,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 }
 
 int save_aliases(shortdir *shortdirs){
-	printf("BUG: Make sure aliases.txt is saved to the root directory (not temp/aliases.txt)\n");
+	printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\n");
 
     FILE *fptr = fopen(aliasfile, "w");
 
