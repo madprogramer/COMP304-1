@@ -691,19 +691,41 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 		//PART IV: alarm
 		else if (strcmp(command->args[0], "goodMorning")==0){
-			printf("NOT Implemented\n");
+			//printf("NOT Implemented\n");
+
+			//1. Parse minute, hour and songname
+
+			int hour,min;
+			sscanf(command->args[1],"%d.%d",&hour,&min);
+
+			char filename[2048];
+			strcpy(filename,command->args[2]);
+
+			//printf("Hour: %d\nMinute: %d\nFile: %s\n", hour,min,filename);
+
+			//2. Write crontab command to file
+
+			
+
+			//3. exec to read crontab
+
+			//$crontab alarm.txt
+
+			//execvp();
+			return SUCCESS;
 		}
 
 		//PART V: kdiff
 		else if (strcmp(command->args[0], "kdiff")==0){
 			printf("NOT Implemented\n");
+			return SUCCESS;
 		}
 
 		//PART VI: favorite command
 		else if (strcmp(command->args[0], "myfavorite")==0){
 			printf("NOT Implemented\n");
+			return SUCCESS;
 		}
-
 
 		//Non-Builtins
 		else
