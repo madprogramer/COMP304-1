@@ -7,10 +7,10 @@
 #include <stdbool.h>
 #include <errno.h>
 const char * sysname = "seashell";
-//const char * aliasfile = "/home/aliases.txt";
-//const char * alarmfile = "/home/alarm.txt";
-const char * aliasfile = "aliases.txt";
-const char * alarmfile = "alarm.txt";
+const char * aliasfile = "/home/aliases.txt";
+const char * alarmfile = "/home/alarm.txt";
+//const char * aliasfile = "aliases.txt";
+//const char * alarmfile = "alarm.txt";
 
 
 #define HISTORYSIZE 5
@@ -1000,8 +1000,11 @@ void load_aliases(shortdir *shortdirs){
     ssize_t read;
 
     FILE *f = fopen(aliasfile, "r");
-    if (f == NULL)
-        exit(EXIT_FAILURE);
+    if (f == NULL){
+    	printf("ERROR: CAN'T LOAD ALIASES, skipping\n");
+    	return;
+        //exit(EXIT_FAILURE);
+    }
 
     while ((read = getline(&line, &len, f)) != -1) {
         //printf("Retrieved line of length %zu:\n", read);
