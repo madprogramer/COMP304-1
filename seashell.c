@@ -802,6 +802,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			int linecount = -1, mislinecount=0;
 
 			char * line1 = NULL, *line2 = NULL;
+			char byte1, byte2;
 		    size_t len = 0;
 		    //ssize_t read;
 
@@ -865,7 +866,59 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			}
 			//PART B (mode = 1)
 			else{
-				;
+				FILE *f1 = fopen(filename1, "rb");
+				FILE *f2 = fopen(filename2, "rb");
+			    if ( (f1 == NULL) || (f2 == NULL) ){
+			        exit(EXIT_FAILURE);
+			    }
+
+			    while ( !f1ended || !f2ended ) {
+
+			    	//printf("%d\n", linecount);
+
+			    	linecount++;
+
+			    	if (firstline){
+			    		firstline=0;
+			    	}
+			    	//Compare strings
+			    	else if(!f1ended && f2ended){
+			    		//printf("%s:Byte %d: %c\n", filename1,linecount,byte1);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+			    	else if(f1ended && !f2ended){
+			    		//printf("%s:Byte %d: %c\n", filename2,linecount,byte2);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+			    	else if( byte1!=byte2 ){
+			    		//printf("%s:Byte %d: %c\n", filename1,linecount,byte1);
+			    		//printf("%s:Byte %d: %c\n", filename2,linecount,byte2);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+
+			    	//Read one line from each
+			    	if( (byte1 = fgetc(f1)) == EOF ){
+			    		f1ended=1;
+			    	}
+			    	if( (byte2 = fgetc(f2)) == EOF ){
+			    		f2ended=1;
+			    	}
+
+			    }
+
+			    //Identical?
+
+			    if(identical){
+			    	printf("The two files are identical\n\n");
+			    }else{
+			    	if(mislinecount==1)
+			    		printf("1 different byte found\n\n");
+			    	else
+			    		printf("%d different bytes found\n\n", mislinecount);
+			    }
 			}
 
 			return SUCCESS;
