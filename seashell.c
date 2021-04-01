@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include <errno.h>
 const char * sysname = "seashell";
-const char * aliasfile = "aliases.txt";
-const char * alarmfile = "alarm.txt";
+const char * aliasfile = "/home/aliases.txt";
+const char * alarmfile = "/home/alarm.txt";
 
 
 #define HISTORYSIZE 5
@@ -788,7 +788,13 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			int identical = 1;
 
 			//PART A (mode = 0)
+			if(mode==0){
+				;
+			}
 			//PART B (mode = 1)
+			else{
+				;
+			}
 
 			return SUCCESS;
 		}
