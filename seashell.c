@@ -7,8 +7,10 @@
 #include <stdbool.h>
 #include <errno.h>
 const char * sysname = "seashell";
-const char * aliasfile = "/home/aliases.txt";
-const char * alarmfile = "/home/alarm.txt";
+//const char * aliasfile = "/home/aliases.txt";
+//const char * alarmfile = "/home/alarm.txt";
+const char * aliasfile = "aliases.txt";
+const char * alarmfile = "alarm.txt";
 
 
 #define HISTORYSIZE 5
@@ -747,7 +749,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				return EXIT;
 			}
 
-			printf("MODE: %d\n",mode);
+			//printf("MODE: %d\n",mode);
 
 			//Check file names
 
@@ -784,12 +786,82 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				return EXIT;
 			}
 
+			//ADD BACK .txt extension
+			strcat(filename1,".txt");
+			strcat(filename2,".txt");
+
 			//identical flag
 			int identical = 1;
 
+			//first line
+			int firstline = 1;
+
+			//file end reached flags
+			int f1ended = 0, f2ended=0;
+
+			int linecount = -1, mislinecount=0;
+
+			char * line1 = NULL, *line2 = NULL;
+		    size_t len = 0;
+		    //ssize_t read;
+
 			//PART A (mode = 0)
+			//LINE BY LINE
 			if(mode==0){
-				;
+
+				FILE *f1 = fopen(filename1, "r");
+				//FILE *f2 = f1;
+				FILE *f2 = fopen(filename2, "r");
+			    if ( (f1 == NULL) || (f2 == NULL) ){
+			    	//printf("ERROR: %d %d\n", (int)(f1), (int)(f2));
+			        exit(EXIT_FAILURE);
+			    }
+
+			    while ( !f1ended || !f2ended ) {
+
+			    	linecount++;
+
+			    	if (firstline){
+			    		firstline=0;
+			    	}
+			    	//Compare strings
+			    	else if(!f1ended && f2ended){
+			    		printf("%s:Line %d: %s\n", filename1,linecount,line1);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+			    	else if(f1ended && !f2ended){
+			    		printf("%s:Line %d: %s\n", filename2,linecount,line2);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+			    	else if(strcmp(line1,line2) != 0){
+			    		printf("%s:Line %d: %s\n", filename1,linecount,line1);
+			    		printf("%s:Line %d: %s\n", filename2,linecount,line2);
+			    		mislinecount++;
+			    		identical=0;
+			    	}
+
+			    	//Read one line from each
+			    	if(getline(&line1, &len, f1) == -1){
+			    		f1ended=1;
+			    	}
+			    	if(getline(&line2, &len, f2) == -1){
+			    		f2ended=1;
+			    	}
+
+			    }
+
+			    //Identical?
+
+			    if(identical){
+			    	printf("The two files are identical\n\n");
+			    }else{
+			    	if(mislinecount==1)
+			    		printf("1 different line found\n\n");
+			    	else
+			    		printf("%d different lines found\n\n", mislinecount);
+			    }
 			}
 			//PART B (mode = 1)
 			else{
@@ -845,7 +917,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 }
 
 int save_aliases(shortdir *shortdirs){
-	printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\nConsider using getcwd()!\n");
+	//printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\nConsider using getcwd()!\n");
 
     FILE *fptr = fopen(aliasfile, "w");
 
