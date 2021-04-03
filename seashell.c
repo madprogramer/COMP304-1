@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <strings.h>
+#include <string.h>
 const char * sysname = "seashell";
 const char * aliasfile = "/home/aliases.txt";
 const char * alarmfile = "/home/alarm.txt";
@@ -13,7 +15,7 @@ const char * alarmfile = "/home/alarm.txt";
 //const char * alarmfile = "alarm.txt";
 
 
-#define HISTORYSIZE 5
+#define HISTORYSIZE 20
 #define BUFFERSIZE 4096
 
 enum return_codes {
@@ -647,7 +649,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					//going through tokens until the end of line
 					while(token != NULL) {
 						//checking whether this token is what we are looking for
-						if(strcmp(token, word) == 0) {
+						if(strcasecmp(token, word) == 0) {
 							//Turn the string into red
 							if(strcmp(color, "r") == 0) {
 								char red[512] = "\e[31m\e[5m\e[1m";
@@ -926,8 +928,53 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 		//PART VI: favorite command
 		else if (strcmp(command->args[0], "myfavorite")==0){
-			printf("NOT Implemented\n");
+			//printf("NOT Implemented\n");
+			
+			//h->commands[0]; h->length;
+			
+			int checked[HISTORYSIZE], countOf[HISTORYSIZE];
+			memset(checked, 0, HISTORYSIZE*sizeof(int));
+			memset(countOf, 0, HISTORYSIZE*sizeof(int));
 			return SUCCESS;
+			
+			//Step 1: Loop over commands
+			//If not checked mark and begin counting
+			//If checked continue
+			int i,j;
+			for(i = h->length - 1; i >= 0 ;i--){
+				if(checked[i]) continue;
+				//Not checked before, checking now
+				count[i] = checked[i] = 1;
+				for(j = i - 1; j >= 0 ;j--){
+					if(checked[j]) continue;
+					//Not matched before, attempting to match now
+					else if(strcmp(h->commands[i],h->commands[j])==0){
+						count[i] += checked[j] = 1;
+					}
+				}
+			}
+			
+			//Step 2: Loop over count to find largest count
+			int fav=-1, favcount=-1;
+			for(i = h->length - 1; i >= 0 ;i--){
+				if(count[i] > favcount){
+					favcount = count[i];
+					fav = i;
+				}
+			}
+			
+			//Step 3: Return corresponding string with largest count
+			printf("Your favorite command lately is %s (%d/%d)\n", h->commands[fav], favcount,h->length);
+			
+			    /* checked   count
+				a 1        2
+				b 1        3
+				c 1        1
+				d 1        1
+				b 1        0
+				a 1        0
+				b 1        0
+			    */
 		}
 
 		//Non-Builtins
