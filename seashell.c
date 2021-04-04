@@ -711,7 +711,12 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 			//2. Write crontab command to file
 
-			FILE *fptr = fopen(alarmfile, "w");
+			char FILELOC[128];
+			memset(FILELOC,0,128*sizeof(char));
+			strcat(FILELOC,getenv("HOME"));
+			strcat(FILELOC,alarmfile);
+
+			FILE *fptr = fopen(FILELOC, "w");
 
 		    if (fptr == NULL) {
 		        printf("Error! Can't save alarm!");
@@ -726,7 +731,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 			//$crontab alarm.txt
 			//crontab alarm.txt
-			char *crontabexec[2] = {"crontab", alarmfile};
+			char *crontabexec[2] = {"crontab", FILELOC};
 			execvp(crontabexec[0], crontabexec);
 			exit(0);
 		}
