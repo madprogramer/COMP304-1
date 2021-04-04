@@ -499,18 +499,32 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 					shortdir *s;
 					s = shortdirs;
-					for (; s->next->shortName != NULL ; s=s->next ) {
-						//printf("SHIFTED\n" );
+
+					for (; s->next != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next );
+
+					//printf("%s %s\n", s->shortName, command->args[2]);
+
+					//OVERWRITE DEFINITION
+					if( strcmp(s->shortName, command->args[2])==0 ){
+						//printf("Overwriting: %s with %s \n", s->longName, getcwd(cwd,sizeof(cwd)));
+						strcpy(s->shortName,command->args[2]);
+					    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
 					}
 
-					//ADD
-					strcpy(s->shortName,command->args[2]);
-				    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
+					else{
+						printf("Writing: %s\n", getcwd(cwd,sizeof(cwd)));
 
-				    //RESERVE NEXT ELEMENT
-				    s->next=malloc(sizeof(shortdir));
-				    memset(s->next, 0, sizeof(shortdir));
-				    s->next->prev = s;
+						//ADD NEW DEFINITION
+						strcpy(s->shortName,command->args[2]);
+					    strcpy(s->longName,getcwd(cwd,sizeof(cwd)));
+
+					    //printf("WRITTEN SUCCESSFULLY?\n");
+
+					    //RESERVE NEXT ELEMENT
+					    s->next=malloc(sizeof(shortdir));
+					    memset(s->next, 0, sizeof(shortdir));
+					    s->next->prev = s;
+					}
 
 				    printf("%s is set as an alias for %s\n",s->shortName,s->longName);
 				}
@@ -518,16 +532,22 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					//printf("Not yet implemented\n" );
 
 					if (!(command->args[2])){
-						printf("error: name not specified for shortdir set.\n" );
+						printf("E: name not specified for shortdir jump.\n" );
 						return UNKNOWN;
 					}
 					shortdir *s;
 					s = shortdirs;
-					for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
+					for (; s->next != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
 						//printf("SHIFTED\n" );
 						//printf("%s : %s\n", s->shortName, s->longName);
 						//printf("%s : %s\n", s->shortName, command->args[1]);
 					}
+
+					if( strcmp(s->shortName, command->args[2])!=0 ){
+						printf("E: alias %s not found.\n", command->args[2] );
+						return UNKNOWN;
+					}
+
 					//printf("%s : %s\n", s->shortName, s->longName);
 					r=chdir(s->longName);
 					if (r==-1)
@@ -538,7 +558,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					//printf("Not yet implemented\n" );
 
 					if (!(command->args[2])){
-						printf("error: name not specified for shortdir set.\n" );
+						printf("E: name not specified for shortdir del.\n" );
 						return UNKNOWN;
 					}
 
@@ -546,18 +566,25 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					s = shortdirs;
 					int isHead = 1;
 
-					for (; s->next->shortName != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
+					for (; s->next != NULL && strcmp(s->shortName, command->args[2])!=0; s=s->next ) {
 						//printf("SHIFTED\n" );
 						isHead = 0;
 					}
 
+					if(strcmp(s->shortName, command->args[2])!=0){
+						printf("E: shortdir alias %s not found.\n", command->args[2]);
+						return UNKNOWN;
+					}
+
 					if (!(isHead)){
+						//printf("REMOVED NOT HEAD");
 						//REMOVE S
 						shortdir *head = s->prev, *tail = s->next;
 						head->next = tail; tail->prev = head;
 						free(s);
 					}
 					else{
+						//printf("REMOVED HEAD");
 						//SHIFT SHORTDIRS POINTER!
 						shortdir *tail = s->next;
 
@@ -567,6 +594,15 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 						shortdirs->next = tail->next;
 
+						if( tail->next == 0){
+							//NOT NULL BECAUSE WE MEMSET 0
+							//printf("ONLY ONE ENTRY\n");
+						}
+						else{
+							//printf("MORE THAN ONE ENTRY\n");
+							tail->next->prev = shortdirs;
+						}
+						
 						free(tail);
 					}
 				}
@@ -933,24 +969,23 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 		//PART VI: favorite command
 		else if (strcmp(command->args[0], "myfavorite")==0){
-			printf("NOT Implemented\n");
+			//printf("NOT Implemented\n");
 			
 			//h->commands[0]; h->length;
 			
 			int checked[HISTORYSIZE], countOf[HISTORYSIZE];
 			memset(checked, 0, HISTORYSIZE*sizeof(int));
 			memset(countOf, 0, HISTORYSIZE*sizeof(int));
-			return SUCCESS;
 			
 			//Step 1: Loop over commands
 			//If not checked mark and begin counting
 			//If checked continue
 			int i,j;
-			for(i = h->length - 1; i >= 0 ;i--){
+			for(i = 0; i < h->length;i++){
 				if(checked[i]) continue;
 				//Not checked before, checking now
 				countOf[i] = checked[i] = 1;
-				for(j = i - 1; j >= 0 ;j--){
+				for(j = i + 1; j < h->length ;j++){
 					if(checked[j]) continue;
 					//Not matched before, attempting to match now
 					else if(strcmp(h->commands[i],h->commands[j])==0){
@@ -961,7 +996,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			
 			//Step 2: Loop over count to find largest count
 			int fav=-1, favcount=-1;
-			for(i = h->length - 1; i >= 0 ;i--){
+			for(i = 0; i < h->length ;i++){
 				if(countOf[i] > favcount){
 					favcount = countOf[i];
 					fav = i;
@@ -980,6 +1015,13 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 				a 1        0
 				b 1        0
 			    */
+
+			/*printf("\tChecked:\tCount:\tCommand:\n");
+			for(i = h->length - 1; i >= 0 ;i--){
+				printf("\t%d\t%d\t%s\n", checked[i],countOf[i],h->commands[i]);
+			}*/
+
+			return SUCCESS;
 		}
 
 		//Non-Builtins
@@ -1021,7 +1063,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		    }
 			ptr = strtok(NULL, split);
 		}
-		//printf("%s\n", "E: Command not found");
+		printf("%s\n", "E: command not found");
 		exit(0);
 		}
 		
