@@ -34,6 +34,8 @@ struct command_t {
 	struct command_t *next; // for piping
 };
 
+// HIST TESTING
+
 struct hist {
 	char commands[HISTORYSIZE][BUFFERSIZE];
 	int length;
@@ -512,7 +514,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					}
 
 					else{
-						printf("Writing: %s\n", getcwd(cwd,sizeof(cwd)));
+						//printf("Writing: %s\n", getcwd(cwd,sizeof(cwd)));
 
 						//ADD NEW DEFINITION
 						strcpy(s->shortName,command->args[2]);
@@ -719,7 +721,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					}
 					//If stringsOfColor exists we are printling the whole line
 					if(stringsOfColor == 1) {
-						printf("%s",lineAbouttaBePrinted);
+						printf("%s\n",lineAbouttaBePrinted);
 					}
 	    		}
 
