@@ -9,8 +9,8 @@
 #include <strings.h>
 #include <string.h>
 const char * sysname = "seashell";
-const char * aliasfile = "/home/aliases.txt";
-const char * alarmfile = "/home/alarm.txt";
+const char * aliasfile = "/aliases.txt";
+const char * alarmfile = "/alarm.txt";
 //const char * aliasfile = "aliases.txt";
 //const char * alarmfile = "alarm.txt";
 
@@ -944,12 +944,12 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			for(i = h->length - 1; i >= 0 ;i--){
 				if(checked[i]) continue;
 				//Not checked before, checking now
-				count[i] = checked[i] = 1;
+				countOf[i] = checked[i] = 1;
 				for(j = i - 1; j >= 0 ;j--){
 					if(checked[j]) continue;
 					//Not matched before, attempting to match now
 					else if(strcmp(h->commands[i],h->commands[j])==0){
-						count[i] += checked[j] = 1;
+						countOf[i] += checked[j] = 1;
 					}
 				}
 			}
@@ -957,8 +957,8 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			//Step 2: Loop over count to find largest count
 			int fav=-1, favcount=-1;
 			for(i = h->length - 1; i >= 0 ;i--){
-				if(count[i] > favcount){
-					favcount = count[i];
+				if(countOf[i] > favcount){
+					favcount = countOf[i];
 					fav = i;
 				}
 			}
@@ -1019,7 +1019,13 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 int save_aliases(shortdir *shortdirs){
 	//printf("BUG: Make sure aliases.txt and alarm.txt is saved to the root directory (not temp/aliases.txt)\nConsider using getcwd()!\n");
 
-    FILE *fptr = fopen(aliasfile, "w");
+	//SAVE UNDER $HOME
+	char FILELOC[128];
+	memset(FILELOC,0,128*sizeof(char));
+	strcat(FILELOC,getenv("HOME"));
+	strcat(FILELOC,aliasfile);
+
+    FILE *fptr = fopen(FILELOC, "w");
 
     // exiting program 
     if (fptr == NULL) {
@@ -1040,15 +1046,22 @@ void load_aliases(shortdir *shortdirs){
 
 	//printf("I AM LOADING\n");
 
+	char FILELOC[128];
+	memset(FILELOC,0,128*sizeof(char));
+	strcat(FILELOC,getenv("HOME"));
+	strcat(FILELOC,aliasfile);
+
+	//printf("Loading shortdir aliases from: %s\n", FILELOC);
+
     shortdir *s = shortdirs;
 
     char * line = NULL;
     size_t len = 0;
     ssize_t read;
 
-    FILE *f = fopen(aliasfile, "r");
+    FILE *f = fopen(FILELOC, "r");
     if (f == NULL){
-    	printf("ERROR: CAN'T LOAD ALIASES, skipping\n");
+    	//printf("E: Can't load any aliases file\n, skipping\n");
     	return;
         //exit(EXIT_FAILURE);
     }
