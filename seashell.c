@@ -596,7 +596,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 			}
 		}
 
-		//PART I
+		//PART I (No longer mandatory)
 		else if (strcmp(command->args[0], "history")==0)
 		{
 			//printf("Time to make history!\n");
@@ -683,7 +683,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 					}
 					//If stringsOfColor exists we are printling the whole line
 					if(stringsOfColor == 1) {
-						printf(lineAbouttaBePrinted);
+						printf("%s",lineAbouttaBePrinted);
 					}
 	    		}
 
@@ -933,7 +933,7 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 
 		//PART VI: favorite command
 		else if (strcmp(command->args[0], "myfavorite")==0){
-			//printf("NOT Implemented\n");
+			printf("NOT Implemented\n");
 			
 			//h->commands[0]; h->length;
 			
@@ -985,9 +985,9 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		//Non-Builtins
 		else
 		{
-			execvp(command->name, command->args); // exec+args+path
-			exit(0);
-		}
+			//execvp(command->name, command->args); // exec+args+path
+			//exit(0);
+		
 		/// TODO: do your own exec with path resolving using execv()
 		/// DONE
 
@@ -996,15 +996,33 @@ int process_command(struct command_t *command, history *h, shortdir *shortdirs)
 		char split[] = ":";
 		char *ptr = strtok(environ, split);
 
+		char exeToCheck[2048];
+
 		while(ptr != NULL) {
-		  	char *exeToCheck = strcat(fileToCheck, command->name);
+
+		  	//char *exeToCheck = strcat(fileToCheck, command->name);
+
+		  	memset(exeToCheck,0,2048*sizeof(char));
+			strcat(exeToCheck,ptr);
+			strcat(exeToCheck,"/");
+			strcat(exeToCheck,command->name);
+		  	//printf("exeToCheck:%s\n", exeToCheck);
+
 		    if(access(exeToCheck, F_OK) == 0){
-			   execv(exeToCheck, exeToCheck);
+		       //printf("EXECUTABLE FOUND\n");
+
+		       strcpy(command->args[0], exeToCheck);
+			   execv(command->args[0], command->args);
+
 			   break;
+			   exit(0);
 		    } else {
-			  printf("%s\n", "File does not exist");
+			  //printf("%s\n", "File does not exist");
 		    }
 			ptr = strtok(NULL, split);
+		}
+		//printf("%s\n", "E: Command not found");
+		exit(0);
 		}
 		
 	} else {
