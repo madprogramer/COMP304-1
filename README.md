@@ -1,4 +1,4 @@
-# COMP430-1
+# COMP304-1
 OS Project #1
 
 #By Ahmet Akkoç (64741) and Kutluhan Palalıoğlu (64795)
